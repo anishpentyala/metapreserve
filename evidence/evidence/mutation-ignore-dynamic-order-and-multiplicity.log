@@ -1,0 +1,21 @@
+test_dynamic_sequence_cases (test_contract.ContractTests) ...
+======================================================================
+FAIL: test_dynamic_sequence_cases (test_contract.ContractTests) (source=['a', 'b'], target=['b', 'a'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpwf7bge91/tests/test_contract.py", line 79, in test_dynamic_sequence_cases
+    self.assertEqual(
+AssertionError: True != False
+
+======================================================================
+FAIL: test_dynamic_sequence_cases (test_contract.ContractTests) (source=['a', 'a'], target=['a'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmpwf7bge91/tests/test_contract.py", line 79, in test_dynamic_sequence_cases
+    self.assertEqual(
+AssertionError: True != False
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=2)
