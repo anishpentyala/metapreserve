@@ -1,0 +1,45 @@
+test_static_absent_is_promise (test_contract.ContractTests) ... FAIL
+test_static_change (test_contract.ContractTests) ... FAIL
+test_static_multiset (test_contract.ContractTests) ... FAIL
+
+======================================================================
+FAIL: test_static_absent_is_promise (test_contract.ContractTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmp5ctugtwd/tests/test_contract.py", line 45, in test_static_absent_is_promise
+    self.assertEqual(self.compare("", "Summary: added\n")["status"], "MISMATCH")
+AssertionError: 'PRESERVED_IN_PROFILE' != 'MISMATCH'
+- PRESERVED_IN_PROFILE
++ MISMATCH
+
+
+======================================================================
+FAIL: test_static_change (test_contract.ContractTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmp5ctugtwd/tests/test_contract.py", line 42, in test_static_change
+    self.assertEqual(report["mismatched_fields"], ["summary"])
+AssertionError: Lists differ: [] != ['summary']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'summary'
+
+- []
++ ['summary']
+
+======================================================================
+FAIL: test_static_multiset (test_contract.ContractTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/tmp5ctugtwd/tests/test_contract.py", line 117, in test_static_multiset
+    self.assertEqual(
+AssertionError: 'MISMATCH' != 'PRESERVED_IN_PROFILE'
+- MISMATCH
++ PRESERVED_IN_PROFILE
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (failures=3)
