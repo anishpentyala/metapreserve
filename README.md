@@ -42,6 +42,42 @@ sequence, or the first source index that cannot be matched in order. JSON report
 embed raw metadata values, which can include author email addresses; check the
 audience before sharing them.
 
+## Declared license-file byte audit (opt-in)
+
+```
+metapreserve dist/demo-1.0.tar.gz dist/demo-1.0-py3-none-any.whl --built-from --license-files
+```
+
+The ordinary audit compares metadata headers only. `--license-files` also reads
+files declared by `License-File`, using the PEP 639 layouts: paths relative to
+the sdist root and to the wheel's `.dist-info/licenses/` directory. It records
+exact member paths, byte counts and SHA256 hashes from the same archive snapshots
+as the metadata. It never extracts files or prints their contents.
+
+Every declared source file must exist, remain declared in the wheel, and have
+identical bytes. Extra wheel declarations are allowed by this content profile
+only if their files exist. Missing source files, dropped wheel declarations,
+missing wheel files and changed bytes are distinct findings. Existing metadata
+comparison rules still apply independently, including static field equality.
+Any content mismatch gives exit 1 and overall `MISMATCH`. Invalid or unsupported
+input, even in the last wheel, gives exit 2 with no partial wheel reports.
+
+This is an explicit **byte-preservation profile**, not a claim that PEP 639
+requires identical bytes for every transformation. PEP 639 supplies the file
+locations and UTF-8 convention. A line-ending change counts as changed bytes;
+the audit does not decide whether it is legally or technically acceptable.
+It does not interpret licenses, establish legal compliance, find undeclared
+notices, or infer build lineage. An empty list of declarations is an empty
+content audit, not evidence that no notices are required.
+
+Both artifacts must use Metadata 2.4 or newer. This opt-in profile refuses
+repeated declarations, paths containing colons or backslashes, absolute paths,
+empty path components, `.`/`..` components, and non-UTF-8 declared files. It admits
+at most 64 declarations, 1 MiB per file and 8 MiB of declared file contents per
+artifact, in addition to the ordinary archive limits. These are supported-profile
+limits, not a complete statement of which package metadata is valid. Without
+`--license-files`, the existing metadata-only behavior is unchanged.
+
 ## What each metadata version means here
 
 | Sdist metadata | Field | Comparison |
