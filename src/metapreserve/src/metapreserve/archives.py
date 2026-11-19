@@ -1,0 +1,176 @@
+"""Read only metadata from bounded, hashed archive snapshots. Never extract."""
+
+import gzip
+import hashlib
+import io
+import os
+import stat
+import tarfile
+import zipfile
+import zlib
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
+
+from packaging.utils import parse_sdist_filename, parse_wheel_filename
+from packaging.version import Version
+
+from .core import InputError, parse_metadata
+
+MAX_ARCHIVE = 64 * 1024 * 1024
+MAX_EXPANDED_TAR = 128 * 1024 * 1024
+MAX_MEMBERS = 10000
+MAX_METADATA = 1048576
+
+
+@dataclass(frozen=True)
+class Artifact:
+    metadata: bytes
+    receipt: dict
+
+
+def _path(name):
+    if not name or "\\" in name or "\x00" in name or name.startswith("/"):
+        raise InputError("noncanonical archive path")
+    stripped = name[:-1] if name.endswith("/") else name
+    if any(piece in {"", ".", ".."} for piece in stripped.split("/")):
+        raise InputError("noncanonical archive path")
+    return PurePosixPath(stripped).parts
+
+
+def _zip_metadata(data, kind):
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        infos = archive.infolist()
+        if len(infos) > MAX_MEMBERS:
+            raise InputError("archive member count exceeds limit")
+        seen = set()
+        candidates = []
+        for info in infos:
+            parts = _path(info.filename)
+            if info.filename in seen:
+                raise InputError("duplicate archive member")
+            seen.add(info.filename)
+            mode = info.external_attr >> 16
+            if stat.S_IFMT(mode) not in {0, stat.S_IFREG, stat.S_IFDIR}:
+                raise InputError("special archive member")
+            if info.flag_bits & 1:
+                raise InputError("encrypted archive member")
+            if kind == "wheel":
+                selected = (
+                    len(parts) == 2
+                    and parts[0].endswith(".dist-info")
+                    and parts[1] == "METADATA"
+                )
+            else:
+                selected = len(parts) == 2 and parts[1] == "PKG-INFO"
+            if selected:
+                if info.is_dir() or info.file_size > MAX_METADATA:
+                    raise InputError("invalid or oversized metadata member")
+                candidates.append(info)
+        if len(candidates) != 1:
+            raise InputError(
+                "expected exactly one top-level distribution metadata member"
+            )
+        info = candidates[0]
+        with archive.open(info) as source:
+            metadata = source.read(MAX_METADATA + 1)
+        if len(metadata) > MAX_METADATA:
+            raise InputError("metadata exceeds limit")
+        return info.filename, metadata
+
+
+def _tar_metadata(data):
+    # A bounded expanded snapshot prevents a tiny gzip stream from causing an
+    # unbounded archive walk. This is an admission limit, not a resource sandbox.
+    with gzip.GzipFile(fileobj=io.BytesIO(data)) as source:
+        expanded = source.read(MAX_EXPANDED_TAR + 1)
+    if len(expanded) > MAX_EXPANDED_TAR:
+        raise InputError("expanded tar exceeds limit")
+    with tarfile.open(fileobj=io.BytesIO(expanded), mode="r:") as archive:
+        seen = set()
+        candidates = []
+        for count, member in enumerate(archive, 1):
+            if count > MAX_MEMBERS:
+                raise InputError("archive member count exceeds limit")
+            parts = _path(member.name)
+            if member.name in seen:
+                raise InputError("duplicate archive member")
+            seen.add(member.name)
+            if not (member.isfile() or member.isdir()):
+                raise InputError("special archive member")
+            if len(parts) == 2 and parts[1] == "PKG-INFO":
+                if not member.isfile() or member.size > MAX_METADATA:
+                    raise InputError("invalid or oversized metadata member")
+                candidates.append(member)
+        if len(candidates) != 1:
+            raise InputError("expected exactly one top-level PKG-INFO member")
+        member = candidates[0]
+        source = archive.extractfile(member)
+        if source is None:
+            raise InputError("metadata is not a regular file")
+        with source:
+            metadata = source.read(MAX_METADATA + 1)
+        if len(metadata) > MAX_METADATA:
+            raise InputError("metadata exceeds limit")
+        return member.name, metadata
+
+
+def read_artifact(path, kind):
+    """Snapshot a wheel or sdist and return its metadata with archive receipts."""
+    if kind not in {"wheel", "sdist"}:
+        raise InputError("artifact kind must be wheel or sdist")
+    try:
+        path = Path(path)
+        filename = path.name
+        if kind == "wheel":
+            name, version, _, _ = parse_wheel_filename(filename)
+        else:
+            name, version = parse_sdist_filename(filename)
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0))
+        with os.fdopen(fd, "rb") as source:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                raise InputError("artifact must be a regular file")
+            data = source.read(MAX_ARCHIVE + 1)
+        if len(data) > MAX_ARCHIVE:
+            raise InputError("archive byte limit exceeded")
+        if filename.endswith((".whl", ".zip")):
+            member, metadata = _zip_metadata(data, kind)
+        elif filename.endswith(".tar.gz") and kind == "sdist":
+            member, metadata = _tar_metadata(data)
+        else:
+            raise InputError(
+                "supported archives are .whl, .zip sdist and .tar.gz sdist"
+            )
+        parsed = parse_metadata(metadata)
+        if parsed["name"] != name or Version(parsed["version"]) != version:
+            raise InputError("metadata identity differs from archive filename")
+        top = member.split("/")[0]
+        if kind == "wheel":
+            # Wheel dist-info stems use normalized distribution and version.
+            expected = filename[:-4].split("-")[:2]
+            if top != "-".join(expected) + ".dist-info":
+                raise InputError("wheel metadata directory differs from filename")
+        return Artifact(
+            metadata,
+            {
+                "filename": filename,
+                "kind": kind,
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "metadata_member": member,
+                "metadata_sha256": hashlib.sha256(metadata).hexdigest(),
+            },
+        )
+    except InputError:
+        raise
+    except (
+        OSError,
+        ValueError,
+        TypeError,
+        EOFError,
+        zipfile.BadZipFile,
+        tarfile.TarError,
+        zlib.error,
+        RuntimeError,
+        NotImplementedError,
+    ) as exc:
+        raise InputError("cannot inspect artifact: " + str(exc)) from exc
