@@ -7,6 +7,7 @@ import sys
 
 from .archives import read_artifact
 from .core import InputError, compare_metadata
+from .licensefiles import compare_license_files
 
 
 def main(argv=None):
@@ -20,6 +21,11 @@ def main(argv=None):
         action="store_true",
         help="assert every wheel was built directly from this unmodified sdist",
     )
+    parser.add_argument(
+        "--license-files",
+        action="store_true",
+        help="also audit declared PEP 639 license-file presence and byte preservation",
+    )
     args = parser.parse_args(argv)
     try:
         if not args.built_from:
@@ -28,15 +34,19 @@ def main(argv=None):
             )
         if len(args.wheels) > 8:
             raise InputError("at most eight wheels per invocation")
-        source = read_artifact(args.sdist, "sdist")
+        source = read_artifact(args.sdist, "sdist", inspect_licenses=args.license_files)
         reports = []
         total = source.receipt["bytes"]
         for path in args.wheels:
-            wheel = read_artifact(path, "wheel")
+            wheel = read_artifact(path, "wheel", inspect_licenses=args.license_files)
             total += wheel.receipt["bytes"]
             if total > 256 * 1024 * 1024:
                 raise InputError("invocation archive byte limit exceeded")
             report = compare_metadata(source.metadata, wheel.metadata, built_from=True)
+            if args.license_files:
+                report["license_files"] = compare_license_files(source, wheel)
+                if report["license_files"]["status"] == "MISMATCH":
+                    report["status"] = "MISMATCH"
             report["wheel"] = wheel.receipt
             reports.append(report)
         mismatch = any(report["status"] == "MISMATCH" for report in reports)
