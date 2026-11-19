@@ -50,7 +50,8 @@ audience before sharing them.
 | 2.2 through 2.5 | Listed in `Dynamic` | Unconstrained, reported explicitly |
 | 2.2 through 2.6 | Not listed in `Dynamic` | Same unfolded value, or multiset for repeated headers |
 | 2.6 | Dynamic repeated header | Source values must appear as an ordered subsequence of wheel values, including duplicate occurrences |
-| 2.6 | Dynamic single-value header | Unconstrained |
+| 2.6 | Dynamic Keywords | Comma-list items must be preserved in relative order, including duplicate occurrences |
+| 2.6 | Other dynamic single-value header | Unconstrained, except the refused email comma lists below |
 
 New values may be inserted before or between existing repeated values as long as
 the existing values and their relative order are preserved. `packaging` is used
@@ -73,9 +74,18 @@ with zero constrained non-identity fields is not a certificate of metadata equal
   same way. Inspect the field evidence before treating a mismatch as a defect.
 - Static repeated headers are compared as multisets, so order alone is not a
   static mismatch. The explicit order rule applies to 2.6 dynamic lists.
-- `Keywords`, `Author-Email` and `Maintainer-Email` have special comma-list
-  extension rules in PEP 808. A 2.6 source that supplies one of these and marks
-  it dynamic is refused, not given a false pass or compared as an opaque string.
+- A 2.6 dynamic `Keywords` header is split on commas, with surrounding whitespace
+  stripped from each item, matching `packaging`'s keyword parsing. Source items
+  must appear as an ordered subsequence of wheel items, including duplicates.
+  Item case and internal whitespace are not normalized. The raw unfolded values
+  remain in the report; `source_items`, `wheel_items` and `index_unit` make clear
+  that matched and unmatched indices refer to comma-list items, not headers.
+  Empty items are refused, including a blank header or leading/trailing comma.
+  This is a bounded preservation profile, not full keyword validity checking.
+  Static Keywords and 2.2 through 2.5 dynamic Keywords keep their prior behavior.
+- `Author-Email` and `Maintainer-Email` also have special comma-list extension
+  rules in PEP 808. A 2.6 source that supplies either and marks it dynamic is
+  still refused. Quoted commas and email syntax are not parsed as keywords.
 - Legacy `Description` headers and message bodies are supported, with line-ending
   normalization. A description supplied in both places is refused. Paragraph,
   markup and trailing-whitespace equivalence are not inferred.
