@@ -1,4 +1,4 @@
-"""Read only metadata from bounded, hashed archive snapshots. Never extract."""
+"""Bounded metadata and optional declared-license receipts. Never extract."""
 
 import gzip
 import hashlib
@@ -15,6 +15,12 @@ from packaging.utils import parse_sdist_filename, parse_wheel_filename
 from packaging.version import Version
 
 from .core import InputError, parse_metadata
+from .licensefiles import (
+    MAX_LICENSE_FILE,
+    MAX_LICENSE_TOTAL,
+    file_receipt,
+    license_members,
+)
 
 MAX_ARCHIVE = 64 * 1024 * 1024
 MAX_EXPANDED_TAR = 128 * 1024 * 1024
@@ -26,6 +32,7 @@ MAX_METADATA = 1048576
 class Artifact:
     metadata: bytes
     receipt: dict
+    license_files: list | None = None
 
 
 def _path(name):
@@ -37,7 +44,7 @@ def _path(name):
     return PurePosixPath(stripped).parts
 
 
-def _zip_metadata(data, kind):
+def _zip_metadata(data, kind, inspect_licenses=False):
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         infos = archive.infolist()
         if len(infos) > MAX_MEMBERS:
@@ -75,10 +82,27 @@ def _zip_metadata(data, kind):
             metadata = source.read(MAX_METADATA + 1)
         if len(metadata) > MAX_METADATA:
             raise InputError("metadata exceeds limit")
-        return info.filename, metadata
+        licenses = None
+        if inspect_licenses:
+            licenses = []
+            total = 0
+            members = {entry.filename: entry for entry in infos}
+            for path, name in license_members(metadata, info.filename, kind):
+                entry = members.get(name)
+                content = None
+                if entry is not None:
+                    if entry.is_dir() or entry.file_size > MAX_LICENSE_FILE:
+                        raise InputError("invalid or oversized license-file member")
+                    with archive.open(entry) as source:
+                        content = source.read(MAX_LICENSE_FILE + 1)
+                    total += len(content)
+                    if total > MAX_LICENSE_TOTAL:
+                        raise InputError("license-file total byte limit exceeded")
+                licenses.append(file_receipt(path, name, content))
+        return info.filename, metadata, licenses
 
 
-def _tar_metadata(data):
+def _tar_metadata(data, inspect_licenses=False):
     # A bounded expanded snapshot prevents a tiny gzip stream from causing an
     # unbounded archive walk. This is an admission limit, not a resource sandbox.
     with gzip.GzipFile(fileobj=io.BytesIO(data)) as source:
@@ -111,11 +135,31 @@ def _tar_metadata(data):
             metadata = source.read(MAX_METADATA + 1)
         if len(metadata) > MAX_METADATA:
             raise InputError("metadata exceeds limit")
-        return member.name, metadata
+        licenses = None
+        if inspect_licenses:
+            licenses = []
+            total = 0
+            members = {entry.name: entry for entry in archive.getmembers()}
+            for path, name in license_members(metadata, member.name, "sdist"):
+                entry = members.get(name)
+                content = None
+                if entry is not None:
+                    if not entry.isfile() or entry.size > MAX_LICENSE_FILE:
+                        raise InputError("invalid or oversized license-file member")
+                    with archive.extractfile(entry) as source:
+                        content = source.read(MAX_LICENSE_FILE + 1)
+                    total += len(content)
+                    if total > MAX_LICENSE_TOTAL:
+                        raise InputError("license-file total byte limit exceeded")
+                licenses.append(file_receipt(path, name, content))
+        return member.name, metadata, licenses
 
 
-def read_artifact(path, kind):
-    """Snapshot a wheel or sdist and return its metadata with archive receipts."""
+def read_artifact(path, kind, *, inspect_licenses=False):
+    """Snapshot an artifact; optionally inspect declared PEP 639 license files.
+
+    Metadata and license receipts always come from the same immutable snapshot.
+    """
     if kind not in {"wheel", "sdist"}:
         raise InputError("artifact kind must be wheel or sdist")
     try:
@@ -133,9 +177,9 @@ def read_artifact(path, kind):
         if len(data) > MAX_ARCHIVE:
             raise InputError("archive byte limit exceeded")
         if filename.endswith((".whl", ".zip")):
-            member, metadata = _zip_metadata(data, kind)
+            member, metadata, licenses = _zip_metadata(data, kind, inspect_licenses)
         elif filename.endswith(".tar.gz") and kind == "sdist":
-            member, metadata = _tar_metadata(data)
+            member, metadata, licenses = _tar_metadata(data, inspect_licenses)
         else:
             raise InputError(
                 "supported archives are .whl, .zip sdist and .tar.gz sdist"
@@ -159,6 +203,7 @@ def read_artifact(path, kind):
                 "metadata_member": member,
                 "metadata_sha256": hashlib.sha256(metadata).hexdigest(),
             },
+            licenses,
         )
     except InputError:
         raise
