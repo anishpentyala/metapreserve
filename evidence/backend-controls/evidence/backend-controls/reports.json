@@ -1,0 +1,279 @@
+{
+  "sdist": {
+    "filename": "metapreserve_demo-1.0.tar.gz",
+    "kind": "sdist",
+    "bytes": 588,
+    "sha256": "dc667bf6b0131f3c8f897744bbd39f3d297a6e00759d2122a2d00f6ee0c82252",
+    "metadata_member": "metapreserve_demo-1.0/PKG-INFO",
+    "metadata_sha256": "7cdc8c24ea25cd59dcd1a4ded325876af5fd98743002b01fec54efcf9e7d989a"
+  },
+  "controls": {
+    "preserved": {
+      "schema_version": 1,
+      "status": "PRESERVED_IN_PROFILE",
+      "basis": "caller_asserted_sdist_to_wheel_lineage",
+      "comparison": "unfolded_field_values_not_semantic_equivalence",
+      "source_metadata_version": "2.6",
+      "wheel_metadata_version": "2.2",
+      "identity": {
+        "name": "metapreserve-demo",
+        "version": "1.0"
+      },
+      "mismatched_fields": [],
+      "constrained_nonidentity_fields": 1,
+      "unconstrained_fields": [],
+      "checks": [
+        {
+          "field": "name",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        },
+        {
+          "field": "requires-dist",
+          "rule": "dynamic_preserve_sequence",
+          "source": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "wheel": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "matched_wheel_indices": [
+            0,
+            1
+          ],
+          "status": "PRESERVED"
+        },
+        {
+          "field": "version",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        }
+      ],
+      "receipt": {
+        "filename": "metapreserve_demo-1.0-py3-none-any.whl",
+        "kind": "wheel",
+        "bytes": 829,
+        "sha256": "5c44a864da355df8f10c386950cbbf09f065cb4bdb845aa67f87de3620f0675d",
+        "metadata_member": "metapreserve_demo-1.0.dist-info/METADATA",
+        "metadata_sha256": "0bd6b25901de96f9e4a055dcd860f779a2db8170cc1cf30e6fc58ce2f59988d6"
+      },
+      "control_type": "genuine_backend_output"
+    },
+    "removed": {
+      "schema_version": 1,
+      "status": "MISMATCH",
+      "basis": "caller_asserted_sdist_to_wheel_lineage",
+      "comparison": "unfolded_field_values_not_semantic_equivalence",
+      "source_metadata_version": "2.6",
+      "wheel_metadata_version": "2.2",
+      "identity": {
+        "name": "metapreserve-demo",
+        "version": "1.0"
+      },
+      "mismatched_fields": [
+        "requires-dist"
+      ],
+      "constrained_nonidentity_fields": 1,
+      "unconstrained_fields": [],
+      "checks": [
+        {
+          "field": "name",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        },
+        {
+          "field": "requires-dist",
+          "rule": "dynamic_preserve_sequence",
+          "source": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "wheel": [
+            "typing-extensions>=4"
+          ],
+          "matched_wheel_indices": [],
+          "status": "MISMATCH",
+          "first_unmatched_source_index": 0
+        },
+        {
+          "field": "version",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        }
+      ],
+      "receipt": {
+        "filename": "metapreserve_demo-1.0-py3-none-any.whl",
+        "kind": "wheel",
+        "bytes": 819,
+        "sha256": "ba42d7e1ca37f0f9559a5af3eebf9c796e66ed4c0aa75a93b0ddad8d1f9b1d06",
+        "metadata_member": "metapreserve_demo-1.0.dist-info/METADATA",
+        "metadata_sha256": "4efa6393e2e0c54c63c6c104c91b6350feedaf586fec6e1b6206f405e8edde37"
+      },
+      "control_type": "deliberate_metadata_mutation_not_backend_output"
+    },
+    "reordered": {
+      "schema_version": 1,
+      "status": "MISMATCH",
+      "basis": "caller_asserted_sdist_to_wheel_lineage",
+      "comparison": "unfolded_field_values_not_semantic_equivalence",
+      "source_metadata_version": "2.6",
+      "wheel_metadata_version": "2.2",
+      "identity": {
+        "name": "metapreserve-demo",
+        "version": "1.0"
+      },
+      "mismatched_fields": [
+        "requires-dist"
+      ],
+      "constrained_nonidentity_fields": 1,
+      "unconstrained_fields": [],
+      "checks": [
+        {
+          "field": "name",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        },
+        {
+          "field": "requires-dist",
+          "rule": "dynamic_preserve_sequence",
+          "source": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "wheel": [
+            "typing-extensions>=4",
+            "packaging"
+          ],
+          "matched_wheel_indices": [
+            1
+          ],
+          "status": "MISMATCH",
+          "first_unmatched_source_index": 1
+        },
+        {
+          "field": "version",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        }
+      ],
+      "receipt": {
+        "filename": "metapreserve_demo-1.0-py3-none-any.whl",
+        "kind": "wheel",
+        "bytes": 830,
+        "sha256": "999aa4efec25e1fa396d5349943459b0e404d3528f646777047b1344d2fc50dc",
+        "metadata_member": "metapreserve_demo-1.0.dist-info/METADATA",
+        "metadata_sha256": "ffbae9f2b20a3fced95b306364c15605484e8b9119e8af5bf498aedf6b847998"
+      },
+      "control_type": "deliberate_metadata_mutation_not_backend_output"
+    },
+    "appended": {
+      "schema_version": 1,
+      "status": "PRESERVED_IN_PROFILE",
+      "basis": "caller_asserted_sdist_to_wheel_lineage",
+      "comparison": "unfolded_field_values_not_semantic_equivalence",
+      "source_metadata_version": "2.6",
+      "wheel_metadata_version": "2.2",
+      "identity": {
+        "name": "metapreserve-demo",
+        "version": "1.0"
+      },
+      "mismatched_fields": [],
+      "constrained_nonidentity_fields": 1,
+      "unconstrained_fields": [],
+      "checks": [
+        {
+          "field": "name",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        },
+        {
+          "field": "requires-dist",
+          "rule": "dynamic_preserve_sequence",
+          "source": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "wheel": [
+            "new-dependency",
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "matched_wheel_indices": [
+            1,
+            2
+          ],
+          "status": "PRESERVED"
+        },
+        {
+          "field": "version",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        }
+      ],
+      "receipt": {
+        "filename": "metapreserve_demo-1.0-py3-none-any.whl",
+        "kind": "wheel",
+        "bytes": 844,
+        "sha256": "777ccd7eebe287b5a796e8ba6820db0245483b01ef49b8438c8f87d1c7c80312",
+        "metadata_member": "metapreserve_demo-1.0.dist-info/METADATA",
+        "metadata_sha256": "4ede08831ab19749a0f2baa49b21bcf54d7930a90eabaf7b74fe94927d4ee6e0"
+      },
+      "control_type": "deliberate_metadata_mutation_not_backend_output"
+    },
+    "changed": {
+      "schema_version": 1,
+      "status": "MISMATCH",
+      "basis": "caller_asserted_sdist_to_wheel_lineage",
+      "comparison": "unfolded_field_values_not_semantic_equivalence",
+      "source_metadata_version": "2.6",
+      "wheel_metadata_version": "2.2",
+      "identity": {
+        "name": "metapreserve-demo",
+        "version": "1.0"
+      },
+      "mismatched_fields": [
+        "requires-dist"
+      ],
+      "constrained_nonidentity_fields": 1,
+      "unconstrained_fields": [],
+      "checks": [
+        {
+          "field": "name",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        },
+        {
+          "field": "requires-dist",
+          "rule": "dynamic_preserve_sequence",
+          "source": [
+            "packaging",
+            "typing-extensions>=4"
+          ],
+          "wheel": [
+            "packaging>=999",
+            "typing-extensions>=4"
+          ],
+          "matched_wheel_indices": [],
+          "status": "MISMATCH",
+          "first_unmatched_source_index": 0
+        },
+        {
+          "field": "version",
+          "rule": "normalized_identity",
+          "status": "PRESERVED"
+        }
+      ],
+      "receipt": {
+        "filename": "metapreserve_demo-1.0-py3-none-any.whl",
+        "kind": "wheel",
+        "bytes": 834,
+        "sha256": "4d85b2f24eacf74e7065f59ed66cc674773f55a4c6b1fb4ca0fb190f87d465fc",
+        "metadata_member": "metapreserve_demo-1.0.dist-info/METADATA",
+        "metadata_sha256": "903ae718a5195983ddaa7b04378288696c8f3f56f9e911139f72d0fed76bb72e"
+      },
+      "control_type": "deliberate_metadata_mutation_not_backend_output"
+    }
+  }
+}
