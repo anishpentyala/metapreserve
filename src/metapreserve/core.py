@@ -208,4 +208,4 @@ def compare_metadata(source, target, *, built_from=False):
         ),
         "unconstrained_fields": skipped,
         "checks": checks,
-  }
+    }
