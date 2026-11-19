@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "metapreserve"
-version = "0.1.1"
+version = "0.1.2"
 description = "Audit declared sdist-to-wheel metadata preservation without building or installing"
 requires-python = ">=3.10"
 dependencies = ["packaging>=24"]
