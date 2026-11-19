@@ -1,0 +1,17 @@
+{
+  "ignore-26-dynamic": {
+    "exit_code": 1,
+    "assertion_failures": 3,
+    "log": "mutation-ignore-26-dynamic.log"
+  },
+  "ignore-dynamic-order-and-multiplicity": {
+    "exit_code": 1,
+    "assertion_failures": 2,
+    "log": "mutation-ignore-dynamic-order-and-multiplicity.log"
+  },
+  "skip-static-fields": {
+    "exit_code": 1,
+    "assertion_failures": 3,
+    "log": "mutation-skip-static-fields.log"
+  }
+}
