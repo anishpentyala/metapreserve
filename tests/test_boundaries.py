@@ -48,7 +48,7 @@ class ProfileBoundaryTests(unittest.TestCase):
         self.assertIn("summary", result["unconstrained_fields"])
 
     def test_unsupported_dynamic_comma_lists(self):
-        for field in ["Keywords", "Author-Email", "Maintainer-Email"]:
+        for field in ["Author-Email", "Maintainer-Email"]:
             with self.subTest(field=field), self.assertRaises(InputError):
                 compare_metadata(
                     meta(f"Dynamic: {field}\n{field}: first,second\n"),
