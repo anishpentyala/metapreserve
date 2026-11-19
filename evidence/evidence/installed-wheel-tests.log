@@ -1,0 +1,38 @@
+test_cli_all_or_nothing (test_boundaries.ArchiveBoundaryTests.test_cli_all_or_nothing) ... ok
+test_duplicate_entry (test_boundaries.ArchiveBoundaryTests.test_duplicate_entry) ... ok
+test_fifo_refused_without_blocking (test_boundaries.ArchiveBoundaryTests.test_fifo_refused_without_blocking) ... ok
+test_missing_metadata_and_truncated_archives (test_boundaries.ArchiveBoundaryTests.test_missing_metadata_and_truncated_archives) ... ok
+test_output_failure_exits_two (test_boundaries.ArchiveBoundaryTests.test_output_failure_exits_two) ... ok
+test_reduced_limits (test_boundaries.ArchiveBoundaryTests.test_reduced_limits) ... ok
+test_special_tar_member (test_boundaries.ArchiveBoundaryTests.test_special_tar_member) ... ok
+test_special_zip_member (test_boundaries.ArchiveBoundaryTests.test_special_zip_member) ... ok
+test_wrong_metadata_directory (test_boundaries.ArchiveBoundaryTests.test_wrong_metadata_directory) ... ok
+test_all_multiple_fields_preserve_sequence (test_boundaries.ProfileBoundaryTests.test_all_multiple_fields_preserve_sequence) ... ok
+test_empty_dynamic_declared_field_is_reported (test_boundaries.ProfileBoundaryTests.test_empty_dynamic_declared_field_is_reported) ... ok
+test_field_version_restrictions (test_boundaries.ProfileBoundaryTests.test_field_version_restrictions) ... ok
+test_future_metadata_and_identity_errors (test_boundaries.ProfileBoundaryTests.test_future_metadata_and_identity_errors) ... ok
+test_size_and_bare_cr (test_boundaries.ProfileBoundaryTests.test_size_and_bare_cr) ... ok
+test_static_field_does_not_become_dynamic_via_wheel (test_boundaries.ProfileBoundaryTests.test_static_field_does_not_become_dynamic_via_wheel) ... ok
+test_unsupported_dynamic_comma_lists (test_boundaries.ProfileBoundaryTests.test_unsupported_dynamic_comma_lists) ... ok
+test_archive_and_cli (test_contract.ArchiveTests.test_archive_and_cli) ... ok
+test_duplicate_metadata_and_filename_identity (test_contract.ArchiveTests.test_duplicate_metadata_and_filename_identity) ... ok
+test_zip_sdist_and_traversal (test_contract.ArchiveTests.test_zip_sdist_and_traversal) ... ok
+test_body_line_endings (test_contract.ContractTests.test_body_line_endings) ... ok
+test_dynamic_old_unconstrained (test_contract.ContractTests.test_dynamic_old_unconstrained) ... ok
+test_dynamic_sequence_cases (test_contract.ContractTests.test_dynamic_sequence_cases) ... ok
+test_exhaustive_sequence_oracle (test_contract.ContractTests.test_exhaustive_sequence_oracle) ... ok
+test_header_case_folding (test_contract.ContractTests.test_header_case_folding) ... ok
+test_identity_normalization (test_contract.ContractTests.test_identity_normalization) ... ok
+test_invalid_inputs (test_contract.ContractTests.test_invalid_inputs) ... ok
+test_legacy (test_contract.ContractTests.test_legacy) ... ok
+test_one_dynamic_does_not_hide_static (test_contract.ContractTests.test_one_dynamic_does_not_hide_static) ... ok
+test_requirement_spelling_is_not_equivalence (test_contract.ContractTests.test_requirement_spelling_is_not_equivalence) ... ok
+test_single_dynamic (test_contract.ContractTests.test_single_dynamic) ... ok
+test_static_absent_is_promise (test_contract.ContractTests.test_static_absent_is_promise) ... ok
+test_static_change (test_contract.ContractTests.test_static_change) ... ok
+test_static_multiset (test_contract.ContractTests.test_static_multiset) ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 0.504s
+
+OK
