@@ -15,8 +15,8 @@ MUTATIONS = {
         'elif left["metadata_version"] <= (2, 6):',
     ),
     "ignore-dynamic-order-and-multiplicity": (
-        "matched, missing = _subsequence_witness(a, b)",
-        "matched, missing = ([], None) if set(a) <= set(b) else ([], 0)",
+        "matched, missing = _subsequence_witness(source_items, wheel_items)",
+        "matched, missing = ([], None) if set(source_items) <= set(wheel_items) else ([], 0)",
     ),
     "skip-static-fields": (
         "elif key not in dynamic:",
