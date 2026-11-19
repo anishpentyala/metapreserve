@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metapreserve"
+version = "0.1.0"
+description = "Audit declared sdist-to-wheel metadata preservation without building or installing"
+requires-python = ">=3.10"
+dependencies = ["packaging>=24"]
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+
+[project.scripts]
+metapreserve = "metapreserve.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
