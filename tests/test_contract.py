@@ -183,7 +183,7 @@ class ContractTests(unittest.TestCase):
                 with self.assertRaises(InputError):
                     parse_metadata(data)
         with self.assertRaises(InputError):
-            self.compare("Dynamic: Keywords\nKeywords: a\n", "Keywords: a,b\n")
+            self.compare("Dynamic: Keywords\nKeywords: a,,b\n", "Keywords: a,b\n")
         with self.assertRaises(InputError):
             compare_metadata(meta(), meta())
         with self.assertRaises(InputError):
