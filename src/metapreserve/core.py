@@ -31,7 +31,7 @@ requires-python home-page download-url
 KNOWN = MULTIPLE | SINGLE
 IDENTITY = frozenset({"name", "version", "metadata-version"})
 # PEP 808 allows these comma-list fields to be extended despite single headers.
-# Their sub-item interpretation is deliberately outside this first profile.
+# Email address sub-item interpretation remains outside this profile.
 COMMA_LISTS = frozenset({"keywords", "author-email", "maintainer-email"})
 FIELD_MIN = {
     "dynamic": (2, 2),
@@ -126,6 +126,16 @@ def _subsequence_witness(source, target):
     return matched, None
 
 
+def _keyword_items(values):
+    """Match packaging's comma split and strip, without accepting empty items."""
+    if not values:
+        return []
+    items = [item.strip() for item in values[0].split(",")]
+    if not all(items):
+        raise InputError("2.6 dynamic Keywords contains an empty comma-list item")
+    return items
+
+
 def compare_metadata(source, target, *, built_from=False):
     """Return field-level evidence relative to a caller's build-lineage assertion.
 
@@ -165,6 +175,8 @@ def compare_metadata(source, target, *, built_from=False):
             rule = "static_equal"
         elif left["metadata_version"] < (2, 6):
             rule = "dynamic_unconstrained"
+        elif key == "keywords" and a:
+            rule = "dynamic_preserve_keyword_sequence"
         elif key in COMMA_LISTS and a:
             raise InputError(
                 "2.6 dynamic comma-list preservation not supported: " + key
@@ -183,7 +195,14 @@ def compare_metadata(source, target, *, built_from=False):
             equal = Counter(a) == Counter(b) if key in MULTIPLE else a == b
             item["status"] = "PRESERVED" if equal else "MISMATCH"
         else:
-            matched, missing = _subsequence_witness(a, b)
+            if rule == "dynamic_preserve_keyword_sequence":
+                source_items, wheel_items = _keyword_items(a), _keyword_items(b)
+                item["source_items"] = source_items
+                item["wheel_items"] = wheel_items
+                item["index_unit"] = "comma_list_item"
+            else:
+                source_items, wheel_items = a, b
+            matched, missing = _subsequence_witness(source_items, wheel_items)
             item["matched_wheel_indices"] = matched
             if missing is None:
                 item["status"] = "PRESERVED"
@@ -208,4 +227,4 @@ def compare_metadata(source, target, *, built_from=False):
         ),
         "unconstrained_fields": skipped,
         "checks": checks,
-    }
+        }
