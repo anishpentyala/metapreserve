@@ -1,0 +1,17 @@
+[build-system]
+requires = ["scikit-build-core==1.1.2", "dynamic-metadata==0.7.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "metapreserve-demo"
+version = "1.0"
+dependencies = ["packaging"]
+dynamic = ["dependencies"]
+
+[[tool.dynamic-metadata]]
+provider = {path = "plugins", module = "extend"}
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+wheel.cmake = false
+sdist.include = ["plugins/extend.py"]
