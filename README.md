@@ -87,7 +87,8 @@ limits, not a complete statement of which package metadata is valid. Without
 | 2.2 through 2.6 | Not listed in `Dynamic` | Same unfolded value, or multiset for repeated headers |
 | 2.6 | Dynamic repeated header | Source values must appear as an ordered subsequence of wheel values, including duplicate occurrences |
 | 2.6 | Dynamic Keywords | Comma-list items must be preserved in relative order, including duplicate occurrences |
-| 2.6 | Other dynamic single-value header | Unconstrained, except the refused email comma lists below |
+| 2.6 | Dynamic Author-Email or Maintainer-Email with source values | Supported mailbox items must remain in relative order, including duplicates |
+| 2.6 | Other dynamic single-value header | Unconstrained |
 
 New values may be inserted before or between existing repeated values as long as
 the existing values and their relative order are preserved. `packaging` is used
@@ -119,9 +120,19 @@ with zero constrained non-identity fields is not a certificate of metadata equal
   Empty items are refused, including a blank header or leading/trailing comma.
   This is a bounded preservation profile, not full keyword validity checking.
   Static Keywords and 2.2 through 2.5 dynamic Keywords keep their prior behavior.
-- `Author-Email` and `Maintainer-Email` also have special comma-list extension
-  rules in PEP 808. A 2.6 source that supplies either and marks it dynamic is
-  still refused. Quoted commas and email syntax are not parsed as keywords.
+- A 2.6 dynamic `Author-Email` or `Maintainer-Email` with a source value uses a
+  conservative mailbox-list profile. Commas inside quoted display names or
+  quoted local parts do not split items. Each item must parse as one mailbox
+  with a local part and domain, without parser defects. Groups, comments,
+  unbalanced quotes/brackets, empty items and domain literals (ASCII or
+  non-ASCII, closed or unclosed) are unsupported and give exit 2.
+  Supported items are compared lexically after trimming their surrounding
+  whitespace. Names, case, quoting and internal whitespace are not normalized;
+  a changed display name can be a mismatch even if the address is unchanged.
+  Reports use the same item witnesses as Keywords. This does not establish
+  email identity, deliverability or semantic equivalence. Missing source
+  headers stay unconstrained, while static and older dynamic headers retain
+  their prior comparison rules.
 - Legacy `Description` headers and message bodies are supported, with line-ending
   normalization. A description supplied in both places is refused. Paragraph,
   markup and trailing-whitespace equivalence are not inferred.
@@ -191,6 +202,32 @@ The control script labels genuine preserved output separately from deliberate
 METADATA mutants. Development logs in the private review packet include an older
 32-test run; the committed final test logs contain 33 tests, with the output
 failure regression added before review. The 32-test run is not the final total.
+
+## Mailbox-list demo and controls
+
+`evidence/mailbox-demo` is a synthetic local project with the same pinned backend
+versions. It produces Metadata 2.6 in its sdist and Metadata 2.2 in its wheel,
+with quoted commas in author and maintainer names. The genuine output preserves
+both mailbox lists. It is a local compatibility example, not an upstream defect
+or evidence of adoption.
+
+```sh
+cd evidence/mailbox-demo
+python -m build
+cd ../..
+PYTHONPATH=src python evidence/mailbox_backend_controls.py \
+  evidence/mailbox-demo/dist/metapreserve_mailbox_demo-1.0.tar.gz \
+  evidence/mailbox-demo/dist/metapreserve_mailbox_demo-1.0-py3-none-any.whl
+PYTHONPATH=src python evidence/mailbox_mutation_checks.py
+```
+
+The backend controls label genuine output separately from deliberate wheel
+mutations: removing, changing or reordering promised mailbox items mismatches;
+inserting a new quoted-comma item preserves the profile. Their RECORD hashes
+are deliberately stale. The implementation controls separately check that
+naive comma splitting, loss of order/duplicates, admission of comments and
+leaked parser exceptions are detected by the mailbox tests. Their logs are
+written to the temporary directory, not this checkout.
 
 ## Existing tools and scope
 
