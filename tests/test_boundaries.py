@@ -51,7 +51,7 @@ class ProfileBoundaryTests(unittest.TestCase):
         for field in ["Author-Email", "Maintainer-Email"]:
             with self.subTest(field=field), self.assertRaises(InputError):
                 compare_metadata(
-                    meta(f"Dynamic: {field}\n{field}: first,second\n"),
+                    meta(f"Dynamic: {field}\n{field}: invalid-mailbox\n"),
                     meta(),
                     built_from=True,
                 )
