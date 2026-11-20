@@ -61,7 +61,9 @@ def _zip_metadata(data, kind, inspect_licenses=False):
         seen = set()
         candidates = []
         for info in infos:
-            parts = _path(info.filename)
+            # ZipInfo.filename can be silently truncated at NUL. Validate the
+            # stored central-directory name, before any library sanitization.
+            parts = _path(info.orig_filename)
             if info.filename in seen:
                 raise InputError("duplicate archive member")
             seen.add(info.filename)
