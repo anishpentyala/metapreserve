@@ -44,6 +44,15 @@ def _path(name):
     return PurePosixPath(stripped).parts
 
 
+def _zip_regular(info):
+    """ZIP directory markers need not agree with the filename's final slash."""
+    return (
+        not info.is_dir()
+        and stat.S_IFMT(info.external_attr >> 16) != stat.S_IFDIR
+        and not info.external_attr & 0x10
+    )
+
+
 def _zip_metadata(data, kind, inspect_licenses=False):
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         infos = archive.infolist()
@@ -70,7 +79,7 @@ def _zip_metadata(data, kind, inspect_licenses=False):
             else:
                 selected = len(parts) == 2 and parts[1] == "PKG-INFO"
             if selected:
-                if info.is_dir() or info.file_size > MAX_METADATA:
+                if not _zip_regular(info) or info.file_size > MAX_METADATA:
                     raise InputError("invalid or oversized metadata member")
                 candidates.append(info)
         if len(candidates) != 1:
@@ -91,7 +100,7 @@ def _zip_metadata(data, kind, inspect_licenses=False):
                 entry = members.get(name)
                 content = None
                 if entry is not None:
-                    if entry.is_dir() or entry.file_size > MAX_LICENSE_FILE:
+                    if not _zip_regular(entry) or entry.file_size > MAX_LICENSE_FILE:
                         raise InputError("invalid or oversized license-file member")
                     with archive.open(entry) as source:
                         content = source.read(MAX_LICENSE_FILE + 1)
