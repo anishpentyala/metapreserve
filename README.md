@@ -149,7 +149,8 @@ unambiguous top-level distribution directory: `*.dist-info/METADATA` for wheels,
 metadata directory identity must also match the filename.
 
 Files are snapshotted before parsing. Archives are never extracted. Member paths
-must be canonical relative POSIX paths. Duplicate names, special/link members,
+must be canonical relative POSIX paths, checked against the stored ZIP names
+before library NUL truncation. Duplicate names, special/link members,
 encrypted ZIP entries and oversized inputs are refused. Unrelated package file
 contents are not imported or interpreted.
 
