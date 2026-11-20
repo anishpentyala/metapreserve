@@ -2,7 +2,8 @@
 
 import re
 from collections import Counter
-from email import policy
+from email import errors, policy
+from email.headerregistry import HeaderRegistry
 from email.parser import Parser
 
 from packaging.utils import canonicalize_name
@@ -30,9 +31,8 @@ requires-python home-page download-url
 )
 KNOWN = MULTIPLE | SINGLE
 IDENTITY = frozenset({"name", "version", "metadata-version"})
-# PEP 808 allows these comma-list fields to be extended despite single headers.
-# Email address sub-item interpretation remains outside this profile.
-COMMA_LISTS = frozenset({"keywords", "author-email", "maintainer-email"})
+# PEP 808 allows comma-list fields to grow despite having single headers.
+# Address identity equivalence remains outside this lexical profile.
 FIELD_MIN = {
     "dynamic": (2, 2),
     "license-expression": (2, 4),
@@ -136,6 +136,67 @@ def _keyword_items(values):
     return items
 
 
+def _mailbox_items(values):
+    """Lexical mailbox items, not normalized email identities.
+
+    Quoted names and local parts can contain commas. Groups, comments and
+    obsolete forms are refused rather than guessed into preservation evidence.
+    """
+    if not values:
+        return []
+    text = values[0]
+    items = []
+    start = 0
+    quoted = escaped = False
+    angle = 0
+    for index, char in enumerate(text):
+        if escaped:
+            escaped = False
+        elif quoted and char == "\\":
+            escaped = True
+        elif char == '"':
+            quoted = not quoted
+        elif not quoted:
+            if char in "():;[]" or (ord(char) < 32 and char != "\t"):
+                raise InputError("unsupported dynamic mailbox-list syntax")
+            if char == "<":
+                angle += 1
+                if angle > 1:
+                    raise InputError("nested mailbox angle brackets")
+            elif char == ">":
+                angle -= 1
+                if angle < 0:
+                    raise InputError("unmatched mailbox angle bracket")
+            elif char == "," and not angle:
+                items.append(text[start:index].strip())
+                start = index + 1
+    if quoted or escaped or angle:
+        raise InputError("unclosed dynamic mailbox-list syntax")
+    items.append(text[start:].strip())
+    for item in items:
+        if not item:
+            raise InputError("empty dynamic mailbox-list item")
+        try:
+            header = HeaderRegistry()("From", item)
+            addresses = header.addresses
+        except (
+            errors.HeaderParseError,
+            IndexError,
+            ValueError,
+            RecursionError,
+            AttributeError,
+        ) as exc:
+            raise InputError(
+                "invalid or unsupported dynamic mailbox-list item"
+            ) from exc
+        if header.defects or len(addresses) != 1:
+            raise InputError("invalid or unsupported dynamic mailbox-list item")
+        address = addresses[0]
+        if not address.username or not address.domain:
+            raise InputError("dynamic mailbox requires a local part and domain")
+    return items
+
+
 def compare_metadata(source, target, *, built_from=False):
     """Return field-level evidence relative to a caller's build-lineage assertion.
 
@@ -177,10 +238,8 @@ def compare_metadata(source, target, *, built_from=False):
             rule = "dynamic_unconstrained"
         elif key == "keywords" and a:
             rule = "dynamic_preserve_keyword_sequence"
-        elif key in COMMA_LISTS and a:
-            raise InputError(
-                "2.6 dynamic comma-list preservation not supported: " + key
-            )
+        elif key in {"author-email", "maintainer-email"} and a:
+            rule = "dynamic_preserve_mailbox_sequence"
         elif key in MULTIPLE:
             rule = "dynamic_preserve_sequence"
         else:
@@ -195,8 +254,12 @@ def compare_metadata(source, target, *, built_from=False):
             equal = Counter(a) == Counter(b) if key in MULTIPLE else a == b
             item["status"] = "PRESERVED" if equal else "MISMATCH"
         else:
-            if rule == "dynamic_preserve_keyword_sequence":
-                source_items, wheel_items = _keyword_items(a), _keyword_items(b)
+            if rule in {
+                "dynamic_preserve_keyword_sequence",
+                "dynamic_preserve_mailbox_sequence",
+            }:
+                split = _keyword_items if key == "keywords" else _mailbox_items
+                source_items, wheel_items = split(a), split(b)
                 item["source_items"] = source_items
                 item["wheel_items"] = wheel_items
                 item["index_unit"] = "comma_list_item"
